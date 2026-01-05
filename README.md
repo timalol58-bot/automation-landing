@@ -215,7 +215,7 @@
     
     <script>
         // ⚠️ ВАЖЛИВО: Замініть це посилання на ваш webhook URL з n8n
-        const N8N_WEBHOOK_URL = 'ВАШ_WEBHOOK_URL_ТУТ';
+        const N8N_WEBHOOK_URL = https://timaloln8n.site/webhook/consultation-form;
         
         // Обробка відправки форми
         document.getElementById('consultationForm').addEventListener('submit', async function(e) {
