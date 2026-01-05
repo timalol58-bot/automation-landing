@@ -48,6 +48,15 @@
         .radio-card:has(input:checked) .radio-dot {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
+        
+        .pulse-border {
+            animation: pulseBorder 2s infinite;
+        }
+        
+        @keyframes pulseBorder {
+            0%, 100% { border-color: #22c55e; }
+            50% { border-color: #86efac; }
+        }
     </style>
 </head>
 <body class="min-h-screen gradient-bg">
@@ -69,6 +78,34 @@
                 <p class="text-white/80 text-lg">
                     Заповніть форму — ми зв'яжемося з вами!
                 </p>
+            </div>
+            
+            <!-- ⚠️ ВАЖЛИВИЙ БЛОК: Запустіть бота -->
+            <div class="bg-green-50 border-3 border-green-400 rounded-2xl p-5 mb-6 fade-in pulse-border" style="animation-delay: 0.1s;">
+                <div class="flex items-start gap-4">
+                    <div class="text-4xl">🤖</div>
+                    <div>
+                        <h3 class="text-green-800 font-bold text-lg mb-2">
+                            Перш ніж заповнювати форму — запустіть бота!
+                        </h3>
+                        <p class="text-green-700 mb-3">
+                            Щоб ми могли відповісти вам в Telegram, спочатку натисніть кнопку нижче і запустіть бота:
+                        </p>
+                        <a 
+                            href="https://t.me/ВАШ_БОТ_ТУТ" 
+                            target="_blank"
+                            class="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 hover:scale-105"
+                        >
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.064-1.226-.461-1.901-.903-1.056-.692-1.653-1.123-2.678-1.799-1.185-.781-.417-1.21.258-1.911.177-.184 3.247-2.977 3.307-3.23.007-.032.015-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.009-1.252-.242-1.865-.442-.751-.244-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.831-2.529 6.998-3.015 3.333-1.386 4.025-1.627 4.477-1.635.099-.002.321.023.465.141.121.1.154.234.169.359.015.126.034.411.019.635z"/>
+                            </svg>
+                            Відкрити бота в Telegram
+                        </a>
+                        <p class="text-green-600 text-sm mt-3">
+                            👆 Натисніть <strong>Start</strong> в боті, потім поверніться сюди
+                        </p>
+                    </div>
+                </div>
             </div>
             
             <!-- Картка з формою -->
@@ -103,13 +140,14 @@
                             placeholder="Наприклад: 123456789"
                             required
                             pattern="[0-9]+"
+                            title="Введіть тільки цифри"
                             class="w-full px-5 py-4 text-lg border-2 border-gray-200 rounded-xl input-focus focus:border-purple-500 focus:outline-none transition-all duration-300"
                         >
                         <div class="mt-3 p-4 bg-purple-50 rounded-xl">
                             <p class="text-purple-800 text-sm font-medium mb-2">🤖 Як дізнатись свій Telegram ID?</p>
                             <ol class="text-purple-700 text-sm space-y-1">
                                 <li>1. Відкрийте Telegram</li>
-                                <li>2. Знайдіть бота <a href="https://t.me/userinfobot" target="_blank" class="font-bold underline">@userinfobot</a></li>
+                                <li>2. Знайдіть бота <a href="https://t.me/userinfobot" target="_blank" class="font-bold underline hover:text-purple-900">@userinfobot</a></li>
                                 <li>3. Натисніть Start — бот покаже ваш ID</li>
                             </ol>
                         </div>
@@ -179,6 +217,7 @@
                     <!-- Кнопка відправки -->
                     <button 
                         type="submit"
+                        id="submitBtn"
                         class="w-full gradient-bg text-white font-bold text-xl py-5 rounded-xl btn-hover transition-all duration-300 cursor-pointer"
                     >
                         Відправити заявку ✉️
@@ -194,12 +233,30 @@
                         </svg>
                     </div>
                     <h2 class="text-2xl font-bold text-gray-800 mb-3">Дякуємо за заявку! 🎉</h2>
-                    <p class="text-gray-600 text-lg mb-6">Ми зв'яжемося з вами в Telegram найближчим часом.</p>
+                    <p class="text-gray-600 text-lg mb-2">Ми отримали вашу заявку.</p>
+                    <p class="text-gray-600 text-lg mb-6">Перевірте Telegram — бот вже надіслав вам підтвердження!</p>
                     <button 
                         onclick="resetForm()"
-                        class="text-purple-600 font-semibold hover:text-purple-800 transition-colors"
+                        class="text-purple-600 font-semibold hover:text-purple-800 transition-colors cursor-pointer"
                     >
                         ← Залишити ще одну заявку
+                    </button>
+                </div>
+                
+                <!-- Повідомлення про помилку (прихованe) -->
+                <div id="errorMessage" class="hidden text-center py-10">
+                    <div class="inline-flex items-center justify-center w-24 h-24 bg-red-100 rounded-full mb-6">
+                        <svg class="w-14 h-14 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-3">Щось пішло не так 😔</h2>
+                    <p class="text-gray-600 text-lg mb-6" id="errorText">Спробуйте ще раз або напишіть нам напряму в Telegram.</p>
+                    <button 
+                        onclick="resetForm()"
+                        class="text-purple-600 font-semibold hover:text-purple-800 transition-colors cursor-pointer"
+                    >
+                        ← Спробувати ще раз
                     </button>
                 </div>
                 
@@ -214,52 +271,76 @@
     </div>
     
     <script>
-        // ⚠️ ВАЖЛИВО: Замініть це посилання на ваш webhook URL з n8n
-        const N8N_WEBHOOK_URL = https://timaloln8n.site/webhook/consultation-form;
+        // ═══════════════════════════════════════════════════════════════
+        // ⚠️ ВАЖЛИВО: Вставте сюди ваш webhook URL з n8n!
+        // Приклад: 'https://your-n8n.com/webhook/consultation-form'
+        // ═══════════════════════════════════════════════════════════════
+        const N8N_WEBHOOK_URL = 'ВАШ_WEBHOOK_URL_ТУТ';
+        // ═══════════════════════════════════════════════════════════════
         
         // Обробка відправки форми
         document.getElementById('consultationForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const submitBtn = this.querySelector('button[type="submit"]');
+            const submitBtn = document.getElementById('submitBtn');
             const originalText = submitBtn.innerHTML;
             
             // Показуємо завантаження
             submitBtn.innerHTML = 'Відправляємо... ⏳';
             submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-70');
             
             // Збираємо дані форми
             const formData = {
-                fullName: document.getElementById('fullName').value,
-                telegramId: document.getElementById('telegramId').value,
+                fullName: document.getElementById('fullName').value.trim(),
+                telegramId: document.getElementById('telegramId').value.trim(),
                 urgency: document.querySelector('input[name="urgency"]:checked')?.value,
                 urgencyText: getUrgencyText(document.querySelector('input[name="urgency"]:checked')?.value),
-                description: document.getElementById('description').value,
-                timestamp: new Date().toLocaleString('uk-UA')
+                description: document.getElementById('description').value.trim(),
+                timestamp: new Date().toLocaleString('uk-UA'),
+                source: window.location.href
             };
             
+            console.log('Відправляємо дані:', formData);
+            console.log('На URL:', N8N_WEBHOOK_URL);
+            
             try {
+                // Перевірка чи встановлено webhook URL
+                if (N8N_WEBHOOK_URL === 'ВАШ_WEBHOOK_URL_ТУТ' || N8N_WEBHOOK_URL === '') {
+                    throw new Error('Webhook URL не налаштовано! Відкрийте index.html і вставте ваш n8n webhook URL.');
+                }
+                
                 // Відправляємо дані на n8n webhook
                 const response = await fetch(N8N_WEBHOOK_URL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json'
                     },
+                    mode: 'cors',
                     body: JSON.stringify(formData)
                 });
+                
+                console.log('Відповідь сервера:', response.status);
                 
                 if (response.ok) {
                     // Показуємо повідомлення про успіх
                     document.getElementById('consultationForm').classList.add('hidden');
                     document.getElementById('successMessage').classList.remove('hidden');
+                    document.getElementById('errorMessage').classList.add('hidden');
                 } else {
-                    throw new Error('Помилка сервера');
+                    const errorText = await response.text();
+                    console.error('Помилка сервера:', response.status, errorText);
+                    throw new Error(`Сервер відповів з помилкою: ${response.status}`);
                 }
             } catch (error) {
-                console.error('Помилка:', error);
-                alert('Виникла помилка при відправці. Спробуйте ще раз або напишіть нам в Telegram.');
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
+                console.error('Помилка відправки:', error);
+                
+                // Показуємо повідомлення про помилку
+                document.getElementById('consultationForm').classList.add('hidden');
+                document.getElementById('successMessage').classList.add('hidden');
+                document.getElementById('errorMessage').classList.remove('hidden');
+                document.getElementById('errorText').textContent = error.message;
             }
         });
         
@@ -276,9 +357,17 @@
         
         // Функція скидання форми
         function resetForm() {
-            document.getElementById('consultationForm').reset();
-            document.getElementById('consultationForm').classList.remove('hidden');
+            const form = document.getElementById('consultationForm');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            form.reset();
+            form.classList.remove('hidden');
             document.getElementById('successMessage').classList.add('hidden');
+            document.getElementById('errorMessage').classList.add('hidden');
+            
+            submitBtn.innerHTML = 'Відправити заявку ✉️';
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('opacity-70');
         }
     </script>
     
