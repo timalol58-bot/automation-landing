@@ -56,6 +56,23 @@
             0%, 100% { border-color: #22c55e; }
             50% { border-color: #86efac; }
         }
+        
+        .loading-spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="min-h-screen gradient-bg">
@@ -250,10 +267,18 @@
                         </svg>
                     </div>
                     <h2 class="text-2xl font-bold text-gray-800 mb-3">Щось пішло не так 😔</h2>
-                    <p class="text-gray-600 text-lg mb-6" id="errorText">Спробуйте ще раз або напишіть нам напряму в Telegram.</p>
+                    <p class="text-gray-600 text-lg mb-4" id="errorText">Спробуйте ще раз або напишіть нам напряму в Telegram.</p>
+                    <a 
+                        href="https://t.me/landosikmykhal_bot" 
+                        target="_blank"
+                        class="inline-flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 mb-4"
+                    >
+                        Написати в Telegram
+                    </a>
+                    <br>
                     <button 
                         onclick="resetForm()"
-                        class="text-purple-600 font-semibold hover:text-purple-800 transition-colors cursor-pointer"
+                        class="text-purple-600 font-semibold hover:text-purple-800 transition-colors cursor-pointer mt-4"
                     >
                         ← Спробувати ще раз
                     </button>
@@ -270,19 +295,21 @@
     </div>
     
     <script>
-        
+        // ═══════════════════════════════════════════════════════════════
+        // Webhook URL вашого n8n
+        // ═══════════════════════════════════════════════════════════════
         const N8N_WEBHOOK_URL = 'https://timaloln8n.site/webhook/consultation-form';
-        
+        // ═══════════════════════════════════════════════════════════════
         
         // Обробка відправки форми
         document.getElementById('consultationForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const submitBtn = document.getElementById('submitBtn');
-            const originalText = submitBtn.innerHTML;
+            const form = document.getElementById('consultationForm');
             
             // Показуємо завантаження
-            submitBtn.innerHTML = 'Відправляємо... ⏳';
+            submitBtn.innerHTML = '<span class="loading-spinner"></span> Відправляємо...';
             submitBtn.disabled = true;
             submitBtn.classList.add('opacity-70');
             
@@ -293,50 +320,69 @@
                 urgency: document.querySelector('input[name="urgency"]:checked')?.value,
                 urgencyText: getUrgencyText(document.querySelector('input[name="urgency"]:checked')?.value),
                 description: document.getElementById('description').value.trim(),
-                timestamp: new Date().toLocaleString('uk-UA'),
+                timestamp: new Date().toISOString(),
+                timestampLocal: new Date().toLocaleString('uk-UA'),
                 source: window.location.href
             };
             
-            console.log('Відправляємо дані:', formData);
-            console.log('На URL:', N8N_WEBHOOK_URL);
+            console.log('📤 Відправляємо дані:', formData);
+            console.log('🔗 На URL:', N8N_WEBHOOK_URL);
             
             try {
-                // Перевірка чи встановлено webhook URL
-                if (N8N_WEBHOOK_URL === 'ВАШ_WEBHOOK_URL_ТУТ' || N8N_WEBHOOK_URL === '') {
-                    throw new Error('Webhook URL не налаштовано! Відкрийте index.html і вставте ваш n8n webhook URL.');
+                // Спроба 1: Звичайний fetch з CORS
+                let response;
+                let success = false;
+                
+                try {
+                    response = await fetch(N8N_WEBHOOK_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(formData)
+                    });
+                    
+                    console.log('✅ Відповідь сервера:', response.status);
+                    
+                    if (response.ok) {
+                        success = true;
+                    }
+                } catch (corsError) {
+                    console.log('⚠️ CORS помилка, пробуємо no-cors режим...');
+                    
+                    // Спроба 2: no-cors режим (не отримаємо відповідь, але запит відправиться)
+                    await fetch(N8N_WEBHOOK_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        mode: 'no-cors',
+                        body: JSON.stringify(formData)
+                    });
+                    
+                    console.log('📨 Запит відправлено в no-cors режимі');
+                    success = true; // Припускаємо що відправилось
                 }
                 
-                // Відправляємо дані на n8n webhook
-                const response = await fetch(N8N_WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    mode: 'cors',
-                    body: JSON.stringify(formData)
-                });
-                
-                console.log('Відповідь сервера:', response.status);
-                
-                if (response.ok) {
+                if (success) {
                     // Показуємо повідомлення про успіх
-                    document.getElementById('consultationForm').classList.add('hidden');
+                    form.classList.add('hidden');
                     document.getElementById('successMessage').classList.remove('hidden');
                     document.getElementById('errorMessage').classList.add('hidden');
+                    console.log('🎉 Форма успішно відправлена!');
                 } else {
-                    const errorText = await response.text();
-                    console.error('Помилка сервера:', response.status, errorText);
-                    throw new Error(`Сервер відповів з помилкою: ${response.status}`);
+                    throw new Error(`Сервер відповів з помилкою: ${response?.status || 'невідомо'}`);
                 }
+                
             } catch (error) {
-                console.error('Помилка відправки:', error);
+                console.error('❌ Помилка відправки:', error);
                 
                 // Показуємо повідомлення про помилку
-                document.getElementById('consultationForm').classList.add('hidden');
+                form.classList.add('hidden');
                 document.getElementById('successMessage').classList.add('hidden');
                 document.getElementById('errorMessage').classList.remove('hidden');
-                document.getElementById('errorText').textContent = error.message;
+                document.getElementById('errorText').textContent = 
+                    'Помилка з\'єднання з сервером. Перевірте інтернет або напишіть нам напряму.';
             }
         });
         
@@ -369,5 +415,3 @@
     
 </body>
 </html>
-
-
