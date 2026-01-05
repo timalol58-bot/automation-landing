@@ -88,10 +88,10 @@
                             Перш ніж заповнювати форму — запустіть бота!
                         </h3>
                         <p class="text-green-700 mb-3">
-                            Щоб ми могли відповісти вам в Telegram, спочатку натисні��ь кнопку нижч�� і запустіть бота:
+                            Щоб ми могли відповісти вам в Telegram, спочатку натисніть кнопку нижче і запустіть бота:
                         </p>
                         <a 
-                            href="https://t.me/ВАШ_БОТ_ТУТ" 
+                            href="https://t.me/landosikmykhal_bot" 
                             target="_blank"
                             class="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 hover:scale-105"
                         >
@@ -270,12 +270,9 @@
     </div>
     
     <script>
-        // ═══════════════════════════════════════════════════════════════
-        // ⚠️ ВАЖЛИВО: Вставте сюди ваш webhook URL з n8n!
-        // Приклад: 'https://your-n8n.com/webhook/consultation-form'
-        // ═══════════════════════════════════════════════════════════════
-        const N8N_WEBHOOK_URL = 'ВАШ_WEBHOOK_URL_ТУТ';
-        // ═══════════════════════════════════════════════════════════════
+        
+        const N8N_WEBHOOK_URL = 'https://timaloln8n.site/webhook/consultation-form';
+        
         
         // Обробка відправки форми
         document.getElementById('consultationForm').addEventListener('submit', async function(e) {
