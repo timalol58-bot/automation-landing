@@ -1,4 +1,4 @@
-[index (1).html](https://github.com/user-attachments/files/24437827/index.1.html)
+
 <!DOCTYPE html>
 <html lang="uk">
 <head>
@@ -91,23 +91,28 @@
                         >
                     </div>
                     
-                    <!-- Поле: Telegram -->
+                    <!-- Поле: Telegram ID -->
                     <div class="mb-6">
-                        <label class="block text-gray-700 font-semibold mb-3 text-lg" for="telegram">
-                            📱 Ваш Telegram
+                        <label class="block text-gray-700 font-semibold mb-3 text-lg" for="telegramId">
+                            📱 Ваш Telegram ID
                         </label>
-                        <div class="relative">
-                            <span class="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 text-lg">@</span>
-                            <input 
-                                type="text" 
-                                id="telegram" 
-                                name="telegram"
-                                placeholder="ваш_нікнейм"
-                                required
-                                class="w-full pl-12 pr-5 py-4 text-lg border-2 border-gray-200 rounded-xl input-focus focus:border-purple-500 focus:outline-none transition-all duration-300"
-                            >
+                        <input 
+                            type="text" 
+                            id="telegramId" 
+                            name="telegramId"
+                            placeholder="Наприклад: 123456789"
+                            required
+                            pattern="[0-9]+"
+                            class="w-full px-5 py-4 text-lg border-2 border-gray-200 rounded-xl input-focus focus:border-purple-500 focus:outline-none transition-all duration-300"
+                        >
+                        <div class="mt-3 p-4 bg-purple-50 rounded-xl">
+                            <p class="text-purple-800 text-sm font-medium mb-2">🤖 Як дізнатись свій Telegram ID?</p>
+                            <ol class="text-purple-700 text-sm space-y-1">
+                                <li>1. Відкрийте Telegram</li>
+                                <li>2. Знайдіть бота <a href="https://t.me/userinfobot" target="_blank" class="font-bold underline">@userinfobot</a></li>
+                                <li>3. Натисніть Start — бот покаже ваш ID</li>
+                            </ol>
                         </div>
-                        <p class="text-gray-500 text-sm mt-2">Введіть ваш нікнейм без символу @</p>
                     </div>
                     
                     <!-- Поле: Терміновість -->
@@ -209,25 +214,65 @@
     </div>
     
     <script>
+        // ⚠️ ВАЖЛИВО: Замініть це посилання на ваш webhook URL з n8n
+        const N8N_WEBHOOK_URL = 'ВАШ_WEBHOOK_URL_ТУТ';
+        
         // Обробка відправки форми
-        document.getElementById('consultationForm').addEventListener('submit', function(e) {
+        document.getElementById('consultationForm').addEventListener('submit', async function(e) {
             e.preventDefault();
+            
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            
+            // Показуємо завантаження
+            submitBtn.innerHTML = 'Відправляємо... ⏳';
+            submitBtn.disabled = true;
             
             // Збираємо дані форми
             const formData = {
                 fullName: document.getElementById('fullName').value,
-                telegram: '@' + document.getElementById('telegram').value,
+                telegramId: document.getElementById('telegramId').value,
                 urgency: document.querySelector('input[name="urgency"]:checked')?.value,
-                description: document.getElementById('description').value
+                urgencyText: getUrgencyText(document.querySelector('input[name="urgency"]:checked')?.value),
+                description: document.getElementById('description').value,
+                timestamp: new Date().toLocaleString('uk-UA')
             };
             
-            // Виводимо в консоль (для тестування)
-            console.log('Нова заявка:', formData);
-            
-            // Показуємо повідомлення про успіх
-            document.getElementById('consultationForm').classList.add('hidden');
-            document.getElementById('successMessage').classList.remove('hidden');
+            try {
+                // Відправляємо дані на n8n webhook
+                const response = await fetch(N8N_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                if (response.ok) {
+                    // Показуємо повідомлення про успіх
+                    document.getElementById('consultationForm').classList.add('hidden');
+                    document.getElementById('successMessage').classList.remove('hidden');
+                } else {
+                    throw new Error('Помилка сервера');
+                }
+            } catch (error) {
+                console.error('Помилка:', error);
+                alert('Виникла помилка при відправці. Спробуйте ще раз або напишіть нам в Telegram.');
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
         });
+        
+        // Фун��ція для отримання тексту терміновості
+        function getUrgencyText(value) {
+            const texts = {
+                'urgent': '🔥 Терміново — потрібно якнайшвидше',
+                'week': '📅 Протягом тижня',
+                'month': '🗓️ Протягом місяця',
+                'thinking': '🤔 Просто цікавлюсь ціною'
+            };
+            return texts[value] || value;
+        }
         
         // Функція скидання форми
         function resetForm() {
